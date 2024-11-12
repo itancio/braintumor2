@@ -1,6 +1,7 @@
 # Brain Tumor Classification with Neural Network
 
-[Demo]()
+[Demo](https://youtube.com/shorts/WXu8Sfr6oDg)
+[Link](https://84a1-35-204-16-119.ngrok-free.app/)
 
 ## Part 1
 
@@ -48,7 +49,8 @@ cd streamlit
 streamlit run main.py
 ```
 
-* Error: clearing large files in the commit history
+- Error: clearing large files in the commit history
+
 ```bash
 git filter-branch --force --index-filter \
 'git rm --cached --ignore-unmatch notebook/xception_model.weights.h5' \
