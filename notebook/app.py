@@ -19,12 +19,10 @@ from tf_keras_vis.utils.model_modifiers import ReplaceToLinear
 from google.colab import userdata
 from dotenv import load_dotenv
 
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, Input
-
-
 # from tensorflow.keras.applications.vgg16 import preprocess_input
 # from tensorflow.keras.layers import Dense, Dropout, Flatten
 # from tensorflow.keras.optimizers import Adamax
@@ -104,11 +102,11 @@ def generate_saliency_map(model, img_array, class_index, img_size):
   gradients = tf.math.abs(gradients)
   gradients = tf.reduce_max(gradients, axis=-1)
   gradients = gradients.numpy().squeeze()
-  st.write(f'saliency graidents {gradients.shape}')
+  # st.write(f'saliency graidents {gradients.shape}')
 
   # Resize gradients to match original image size
   gradients = cv2.resize(gradients, img_size)
-  st.write(f'saliency graidents resize {gradients.shape}')
+  # st.write(f'saliency graidents resize {gradients.shape}')
 
   # Create a circular mask for the brain area
   center = (gradients.shape[0] // 2, gradients.shape[1] // 2)
@@ -131,12 +129,12 @@ def generate_saliency_map(model, img_array, class_index, img_size):
 
   # Apply more aggressive smoothing
   gradients = cv2.GaussianBlur(gradients, (11, 11), 0)
-  st.write(f'saliency graidents {gradients.shape}')
+  # st.write(f'saliency graidents {gradients.shape}')
 
   # Create a heatmap overlay with enhanced contrast
   heatmap = cv2.applyColorMap(np.uint8(255 * gradients), cv2.COLORMAP_JET)
   heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
-  st.write(f'saliency headmap: {heatmap.shape}')
+  # st.write(f'saliency headmap: {heatmap.shape}')
 
   # Resize heatmap to match original image size
   heatmap = cv2.resize(heatmap, img_size)
@@ -146,7 +144,7 @@ def generate_saliency_map(model, img_array, class_index, img_size):
   original_img = image.img_to_array(img)
   superimposed_img = heatmap * 0.90 + original_img * 0.35
   superimposed_img = superimposed_img.astype(np.uint8)
-  st.write(f'saliency superimposed: {superimposed_img.shape}')
+  # st.write(f'saliency superimposed: {superimposed_img.shape}')
 
   img_path = os.path.join(output_dir, uploaded_file.name)
   with open(img_path, 'wb') as f:
@@ -158,111 +156,6 @@ def generate_saliency_map(model, img_array, class_index, img_size):
   cv2.imwrite(saliency_map_path, cv2.cvtColor(superimposed_img, cv2.COLOR_RGB2BGR))
 
   return superimposed_img
-
-
-def generate_gradcam_map(model, prediction, img_array, img_size=(224, 224)):
-    # Create the gradcam directory if it doesn't exist
-    output_dir = 'gradcam_maps'
-    os.makedirs(output_dir, exist_ok=True)
-
-    H, W = img_size
-    cls = np.argmax(prediction)
-
-    # Find the last convolutional layer
-    last_conv_layer = None
-    for layer in reversed(model.layers):
-        if 'conv' in layer.name or 'Conv' in layer.name or isinstance(layer, tf.keras.layers.Conv2D):
-            last_conv_layer = layer
-            break
-    if last_conv_layer is None:
-        raise ValueError("No convolutional layer found in the model.")
-
-    # # Use the existing trained model, no need to redefine or load weights separately
-    grad_model = Sequential([
-      Input(shape=(None, None, 3)),
-      Conv2D(filters=32, kernel_size=3),
-    ])
-
-    st.write(f'grad model: {grad_model(img_array)}')
-    st.write(f'model: {model(img_array)}')
-    st.write(f'model layers: {model.get_layer}')
-    st.write(f'model last layer: {model.get_layer(last_conv_layer.name)}')
-    st.write(f'model output: {model.get_layer(last_conv_layer.name).output}')
-
-
-    # Compute the gradient of the top predicted class for our input image
-    # with respect to the activations of the last conv layer
-    with tf.GradientTape() as tape:
-        # Forward pass through the model
-        conv_outputs, predictions = model(img_array)
-
-        # Watch conv_outputs to compute gradients with respect to it
-        tape.watch(conv_outputs)
-
-        # Select the score for the target class
-        pred_index = tf.argmax(predictions[0])  # Access the target class score for the batch
-        class_channel = predictions[:, pred_index]
-
-    # Calculate the gradients of the target class with respect to the conv layer output
-    grads = tape.gradient(class_channel, conv_outputs)
-
-    # This is a vector where each entry is the mean intensity of the gradient
-    # over a specific feature map channel
-    pooled_grads = tf.reduce_mean(grads, axis=-(0, 1, 2))
-
-    # We multiply each channel in the feature map array
-    # by "how important this channel is" with regard to the top predicted class
-    # then sum all the channels to obtain the heatmap class activation
-    last_conv_layer_output = last_conv_layer_output[0]
-    heatmap = last_conv_layer_output @ pooled_grads[..., tf.newaxis]
-    heatmap = tf.squeeze(heatmap)
-
-    # For visualization purpose, we will also normalize the heatmap between 0 & 1
-    heatmap = tf.maximum(heatmap, 0) / tf.math.reduce_max(heatmap)
-    heatmap = heatmap.numpy()
-
-
-    # # Save the Grad-CAM map
-    # gradcam_map_path = os.path.join(output_dir, output_filename)
-    # cam_uint8 = np.uint8(255 * cam)
-    # heatmap = cv2.applyColorMap(cam_uint8, cv2.COLORMAP_JET)
-    # cv2.imwrite(gradcam_map_path, heatmap)
-
-    # # Apply more aggressive smoothing
-    # gradients = cv2.GaussianBlur(gradients, (11, 11), 0)
-    # st.write(f'saliency graidents {gradients.shape}')
-
-    # # Create a heatmap overlay with enhanced contrast
-    # heatmap = cv2.applyColorMap(np.uint8(255 * gradients), cv2.COLORMAP_JET)
-    # heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
-    # st.write(f'saliency headmap: {heatmap.shape}')
-
-    # # Resize heatmap to match original image size
-    # heatmap = cv2.resize(heatmap, img_size)
-    # st.write(f'saliency heatmap resize:  {gradients.shape}')
-
-    # # Superimpose the heatmap on original image with increased opacity
-    # original_img = image.img_to_array(img)
-    # superimposed_img = heatmap * 0.90 + original_img * 0.35
-    # superimposed_img = superimposed_img.astype(np.uint8)
-    # st.write(f'saliency superimposed: {superimposed_img.shape}')
-
-    # img_path = os.path.join(output_dir, uploaded_file.name)
-    # with open(img_path, 'wb') as f:
-    #   f.write(uploaded_file.getbuffer())
-
-    # saliency_map_path = f'{output_dir}/{uploaded_file.name}'
-
-    # # Save the saliency map
-    # cv2.imwrite(saliency_map_path, cv2.cvtColor(superimposed_img, cv2.COLOR_RGB2BGR))
-
-    # return superimposed_img
-
-    plt.matshow(heatmap)
-    plt.show()
-
-    return heatmap
-
 
 
 def generate_explanation(img_path, model_prediction, confidence):
@@ -360,21 +253,12 @@ if uploaded_file is not None:
   saliency_map = generate_saliency_map(model, img_array, predicted_class_idx, img_size)
   saliency_map_path = f'saliency_maps/{uploaded_file.name}'
 
-  gradcam_map = generate_gradcam_map(model, prediction, img_array, img_size=img_size)
-  gradcam_map_path = f'gradcam/{uploaded_file.name}'
-
   col1, col2 = st.columns(2)
 
   with col1:
     st.image(uploaded_file, caption='Uploaded Image', use_container_width=True)
   with col2:
     st.image(saliency_map, caption='Saliency Map', use_container_width=True)
-
-
-  col3, col4 = st.columns(2)
-  with col3:
-    st.image(gradcam_map, caption='GradCAM++ Map', use_container_width=True)
-
 
   st.write('## Classification Results')
 
