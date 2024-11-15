@@ -268,6 +268,9 @@ def generate_cross_diagnosis(uploaded_file, img_path, model_prediction, confiden
     img = PIL.Image.open(img_path)
     model = genai.GenerativeModel(model_name='gemini-1.5-flash')
     prompt = f"""
+    The are two images:
+    1) Original Image: {orig}
+    2) Image with Saliency Map: {img}
     The model predicted the image {model_prediction} with {confidence *100}% confidence. Here's the model's explanation: {explanation}
     As an LLM analyzing MRI scans, your task is to evaluate two images of brain MRI scans.
     On a magnetic resonance imaging (MRI) scan, brain tumors typically appear as abnormal masses or growths.
