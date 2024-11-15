@@ -70,27 +70,27 @@ def load_models():
     url = f'https://drive.google.com/uc?id={file.split("/")[-2]}'
     output = 'xception_1_.keras'
     gdown.download(url, output, quiet=False)
-    model = load_model(output)
+    model1 = load_model(output)
     img_size = (299, 299)
-    models['xception'] = Model(model, img_size)
+    models['xception'] = Model(model1, img_size)
 
     # Load resnet model
     file = 'https://drive.google.com/file/d/1REGN39KkGcC6IdVOGp6XEyOCoGpihM28/view?usp=sharing'
     url = f'https://drive.google.com/uc?id={file.split("/")[-2]}'
     output = 'resnet_.keras'
     gdown.download(url, output, quiet=False)
-    model = load_model(output)
+    model2 = load_model(output)
     img_size = (224, 224)
-    models['resnet'] = Model(model, img_size)
+    models['resnet'] = Model(model2, img_size)
 
     # Load cnn model
     file = 'https://drive.google.com/file/d/1b0KD81MByk2Q4gQ9ktjx-BORKVt94G1M/view?usp=sharing'
     url = f'https://drive.google.com/uc?id={file.split("/")[-2]}'
     output = 'cnn1_.keras'
     gdown.download(url, output, quiet=False)
-    model = load_model(output)
+    model3 = load_model(output)
     img_size = (224, 224)
-    models['sequential'] = Model(model, img_size)
+    models['sequential'] = Model(model3, img_size)
 
     return models
 
@@ -338,10 +338,12 @@ def generate_cross_diagnosis(uploaded_file, img_path, model_prediction, confiden
       prompt,
       orig,
       img
-      ])
+      ],
+      stream=True
+    )
 
-
-    return response.text
+    for chunk in response:
+      yield chunk.text
 
 
 # Function to load image and predict
@@ -423,6 +425,6 @@ def display_explanation_tabs(uploaded_file, saliency_map_path, result, confidenc
         with tab4:
             st.write(explanations['genz'])
 
-    st.write('#### Cross-Diagnosis')
+    st.write('#### Evaluation')
     diagnosis = generate_cross_diagnosis(uploaded_file, saliency_map_path, result, confidence, explanation)
-    st.write(diagnosis)
+    st.write_stream(diagnosis)
