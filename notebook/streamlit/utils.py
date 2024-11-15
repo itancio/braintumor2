@@ -100,7 +100,7 @@ def create_model_probability_chart(probabilities, model):
         )
     ])
     fig.update_layout(
-        title= f"Brain Tumor Classification Probability by the {model}",
+        title= f"Brain Tumor Classification Probability",
         yaxis_title="Tumor types",
         xaxis_title="Probability",
         xaxis=dict(tickformat=".0%", range=[0, 1]),
@@ -171,7 +171,6 @@ def generate_saliency_map(model, img, uploaded_file, class_index, img_size):
 
   # Resize heatmap to match original image size
   heatmap = cv2.resize(heatmap, img_size)
-  st.write(f'saliency heatmap resize:  {gradients.shape}')
 
   # Superimpose the heatmap on original image with increased opacity
   original_img = image.img_to_array(img)

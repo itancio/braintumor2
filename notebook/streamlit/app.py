@@ -55,10 +55,11 @@ if uploaded_file is not None:
 
   # Model 1 Tab
   with model_tab1:
-      st.write(f"## Model 1 Results")
       modelName = modelNames[0]
       model1 = models[modelName].model[0]
       img_size1 = models[modelName].img_size
+
+      st.write(f'## {modelName.title()} Model Results')
 
       prediction, result, predicted_class_idx = load_and_predict(model1, uploaded_file, img_size1)
       display_results(model1, uploaded_file, prediction, result, predicted_class_idx, img_size=img_size1)
@@ -67,10 +68,11 @@ if uploaded_file is not None:
 
   # Model 2 Tab
   with model_tab2:
-      st.write("## Model 2 Results")
       modelName = modelNames[1]
       model2 = models[modelName].model[0]
       img_size2 = models[modelName].img_size
+
+      st.write(f'## {modelName.title()} Model Results')
 
       prediction, result, predicted_class_idx = load_and_predict(model2, uploaded_file, img_size2)
       display_results(model2, uploaded_file, prediction, result, predicted_class_idx, img_size=img_size2)
