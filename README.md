@@ -1,7 +1,7 @@
 # Brain Tumor Classification with Neural Network
 
 [Demo](https://youtube.com/shorts/WXu8Sfr6oDg)
-[Link](https://84a1-35-204-16-119.ngrok-free.app/)
+[Link](https://braintumorclassify.streamlit.app/)
 
 ## Part 1
 
