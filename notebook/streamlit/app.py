@@ -22,12 +22,6 @@ from tensorflow.keras.preprocessing import image
 # from tensorflow.keras.layers import Conv2D, Input
 from utils import (
     load_models, 
-    create_model_probability_chart, 
-    generate_saliency_map, 
-    generate_explanation,
-    generate_modes,
-    generate_cross_diagnosis,
-    convert_img_to_array,
     display_explanation_tabs,
     display_prediction_and_confidence,
     display_results,

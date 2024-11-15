@@ -11,9 +11,6 @@ import os
 import matplotlib.pyplot as plt
 import gdown
 
-from pprint import pprint
-from scipy.ndimage import zoom
-from google.colab import userdata
 from dotenv import load_dotenv
 
 from tensorflow.keras.models import Model, load_model
