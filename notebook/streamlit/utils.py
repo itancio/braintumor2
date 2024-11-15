@@ -11,6 +11,9 @@ import os
 import matplotlib.pyplot as plt
 import gdown
 
+from pprint import pprint
+from scipy.ndimage import zoom
+from google.colab import userdata
 from dotenv import load_dotenv
 
 from tensorflow.keras.models import Model, load_model
@@ -71,6 +74,15 @@ def load_models():
     model = load_model(output)
     img_size = (299, 299)
     models['xception'] = Model(model, img_size)
+
+    # Load resnet model
+    file = 'https://drive.google.com/file/d/1REGN39KkGcC6IdVOGp6XEyOCoGpihM28/view?usp=sharing'
+    url = f'https://drive.google.com/uc?id={file.split("/")[-2]}'
+    output = 'resnet_.keras'
+    gdown.download(url, output, quiet=False)
+    model = load_model(output)
+    img_size = (224, 224)
+    models['resnet'] = Model(model, img_size)
 
     # Load cnn model
     file = 'https://drive.google.com/file/d/1b0KD81MByk2Q4gQ9ktjx-BORKVt94G1M/view?usp=sharing'
@@ -198,8 +210,8 @@ def generate_explanation(uploaded_file, img_path, model_prediction, confidence):
     * {orig} : This image is an MRI scan of the brain.
     * {img}: This image highlights the area of where the model is looking at.
 
-    Your task is to interpret a saliency map from an MRI scan. This map, created by a deep learning model, 
-    has highlighted specific brain regions it focused on to classify the tumor. 
+    Your task is to interpret a saliency map from an MRI scan. This map, created by a deep learning model,
+    has highlighted specific brain regions it focused on to classify the tumor.
     The model was trained to identify four categories: glioma, meningioma, pituitary tumor, or no tumor.
 
     The model has classified the image as '{model_prediction}' with a confidence level of {confidence * 100:.2f}%.
@@ -213,7 +225,7 @@ def generate_explanation(uploaded_file, img_path, model_prediction, confidence):
   """
 
   response = model.generate_content([
-    prompt1, 
+    prompt1,
     orig,
     img,
     ])
@@ -245,10 +257,10 @@ def generate_modes(explanation):
     }}
     Return: list[Mode]
   """
-  
+
   response = model.generate_content([
       prompt2,
-      explanation, 
+      explanation,
       ])
   return response.text
 
@@ -259,33 +271,33 @@ def generate_cross_diagnosis(uploaded_file, img_path, model_prediction, confiden
     prompt = f"""
     The model predicted the image {model_prediction} with {confidence *100}% confidence. Here's the model's explanation: {explanation}
     As an LLM analyzing MRI scans, your task is to evaluate two images of brain MRI scans.
-    On a magnetic resonance imaging (MRI) scan, brain tumors typically appear as abnormal masses or growths. 
+    On a magnetic resonance imaging (MRI) scan, brain tumors typically appear as abnormal masses or growths.
     Healthcare providers look for the following characteristics when evaluating MRI scans for brain tumors:
-    * Size, shape, and location: The tumor's size, shape, and location are noted. 
-    * Contrast enhancement: Contrast-enhanced MRI scans are especially useful 
-    because they can help distinguish tumor tissue from surrounding healthy tissue. 
-    * T1-weighted images: Most brain tumors are hypointense on T1-weighted images. 
-    * T2-weighted images: Most brain tumors are hyperintense on T2-weighted images. 
-    * FLAIR sequences: Most brain tumors are hyperintense on FLAIR sequences. 
-    * Diffusion-weighted imaging (DWI): Absence of restricted water movement is a typical finding. 
-    * Metabolites: Certain metabolites, such as lipids, myo-inositol, and 2-hydroxyglutarate, can indicate the presence of a brain tumor. 
-    
-    Other characteristics of brain tumors on MRI scans include: 
-    * A large cystic lesion with a mural nodule 
-    * A mass that has spread in the middle area of the brain 
+    * Size, shape, and location: The tumor's size, shape, and location are noted.
+    * Contrast enhancement: Contrast-enhanced MRI scans are especially useful
+    because they can help distinguish tumor tissue from surrounding healthy tissue.
+    * T1-weighted images: Most brain tumors are hypointense on T1-weighted images.
+    * T2-weighted images: Most brain tumors are hyperintense on T2-weighted images.
+    * FLAIR sequences: Most brain tumors are hyperintense on FLAIR sequences.
+    * Diffusion-weighted imaging (DWI): Absence of restricted water movement is a typical finding.
+    * Metabolites: Certain metabolites, such as lipids, myo-inositol, and 2-hydroxyglutarate, can indicate the presence of a brain tumor.
+
+    Other characteristics of brain tumors on MRI scans include:
+    * A large cystic lesion with a mural nodule
+    * A mass that has spread in the middle area of the brain
     * Degrees of brightness with contrast
 
-    Based on these characteristics you will follow a detailed step-by-step process to identify areas that may correspond to tumor formations. 
+    Based on these characteristics you will follow a detailed step-by-step process to identify areas that may correspond to tumor formations.
     For each image, perform the following steps to reach a comprehensive assessment of the model’s predictions:
 
     1. Identify the Predicted Area:
-      a. Begin by locating the specific region in the MRI scan where the model has identified 
+      a. Begin by locating the specific region in the MRI scan where the model has identified
       a potential abnormality or tumor. This may be in areas associated with common brain tumors, such as:
           - Pituitary (often a small, pea-sized structure at the base of the brain)
           - Glioma Region (usually in the cerebral hemispheres, involving glial cells in the brain)
           - Meningioma Region (typically located in the meninges, the protective layers surrounding the brain and spinal cord)
       b. Mark the exact coordinates or spatial area as identified by the model, if possible, using any available labeling or overlay for the model’s predicted location.
-  
+
     2. Analyze the Area’s Characteristics:
       a. Describe the specific features of the identified area in the scan, including:
           - Size, shape, and contrast (lighter or darker areas that may indicate density differences).
@@ -299,17 +311,17 @@ def generate_cross_diagnosis(uploaded_file, img_path, model_prediction, confiden
           - Gliomas may show irregular, diffuse areas, especially in the frontal or temporal lobes.
           - Meningiomas typically appear as well-circumscribed masses near the skull base.
 
-    3. Identify Abnormalities:  
+    3. Identify Abnormalities:
       a. Based on the observations, assess whether there are abnormalities in the area, such as:
           - Presence of masses, unusual densities, or structural distortions.
           - Symmetry and consistency with known anatomical structures.
       b. Indicate if the characteristics align with typical tumor presentations or other possible conditions (e.g., cysts, benign growths, or swelling).
-    
+
     4. Cross-Image Assessment:
       a. Next, analyze the second MRI image where the model has made another prediction. Apply the same identification and analysis steps:
         - Observe and describe any structures and characteristics in the predicted area.
         - Check for consistency with the first image’s findings, especially if it is a follow-up or alternate view of the same region.
-    
+
     5. Evaluate the Model’s Prediction:
       a. Based on your analysis of both images, assess if the model’s prediction is likely correct. Consider:
         - Alignment of the model’s prediction with observed physical characteristics (e.g., size, shape, location).
@@ -317,15 +329,15 @@ def generate_cross_diagnosis(uploaded_file, img_path, model_prediction, confiden
         - Whether similar features appear across both images, supporting the presence of a tumor or other abnormality.
       b. Provide a detailed explanation of why you think the model’s prediction is accurate or inaccurate. If inaccurate, suggest possible reasons (e.g., overlapping structures, artifacts, or limitations in MRI clarity).
     6. Conclude Your Evaluation:
-      a.Summarize your final assessment, stating whether you agree or disagree with the model’s initial prediction. 
+      a.Summarize your final assessment, stating whether you agree or disagree with the model’s initial prediction.
       Specify if the detected area in the MRI scan corresponds to a tumor based on observed abnormalities and anatomical context.
-      b. If possible, suggest further imaging or analysis steps that might enhance accuracy, 
+      b. If possible, suggest further imaging or analysis steps that might enhance accuracy,
       such as using higher-resolution images, additional MRI slices, or applying contrast agents to differentiate between tumor and healthy tissue.
     """
     model = genai.GenerativeModel(model_name='gemini-1.5-flash')
     response = model.generate_content([
       prompt,
-      orig, 
+      orig,
       img
       ])
 
@@ -411,7 +423,7 @@ def display_explanation_tabs(uploaded_file, saliency_map_path, result, confidenc
             st.write(explanations['5th-grader'])
         with tab4:
             st.write(explanations['genz'])
-    
+
     st.write('#### Cross-Diagnosis')
     diagnosis = generate_cross_diagnosis(uploaded_file, saliency_map_path, result, confidence, explanation)
     st.write(diagnosis)

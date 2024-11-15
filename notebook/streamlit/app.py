@@ -21,7 +21,13 @@ from tensorflow.keras.preprocessing import image
 # from tensorflow.keras.models import Sequential
 # from tensorflow.keras.layers import Conv2D, Input
 from utils import (
-    load_models, 
+    load_models,
+    create_model_probability_chart,
+    generate_saliency_map,
+    generate_explanation,
+    generate_modes,
+    generate_cross_diagnosis,
+    convert_img_to_array,
     display_explanation_tabs,
     display_prediction_and_confidence,
     display_results,
@@ -45,7 +51,7 @@ uploaded_file = st.file_uploader('Choose an image...', type=['jpg', 'jpeg', 'png
 if uploaded_file is not None:
 
   # Tabs for each model
-  model_tab1, model_tab2 = st.tabs([name.title() for name in modelNames])
+  model_tab1, model_tab2, model_tab3 = st.tabs([name.title() for name in modelNames])
 
   # Model 1 Tab
   with model_tab1:
@@ -70,5 +76,19 @@ if uploaded_file is not None:
 
       prediction, result, predicted_class_idx = load_and_predict(model2, uploaded_file, img_size2)
       display_results(model2, uploaded_file, prediction, result, predicted_class_idx, img_size=img_size2)
+      display_prediction_and_confidence(result, prediction[0][predicted_class_idx])
+      display_explanation_tabs(uploaded_file, f'saliency_maps/{uploaded_file.name}', result, prediction[0][predicted_class_idx])
+
+
+  # Model 3 Tab
+  with model_tab3:
+      modelName = modelNames[2]
+      model3 = models[modelName].model[0]
+      img_size3 = models[modelName].img_size
+
+      st.write(f'## {modelName.title()} Model Results')
+
+      prediction, result, predicted_class_idx = load_and_predict(model3, uploaded_file, img_size3)
+      display_results(model3, uploaded_file, prediction, result, predicted_class_idx, img_size=img_size3)
       display_prediction_and_confidence(result, prediction[0][predicted_class_idx])
       display_explanation_tabs(uploaded_file, f'saliency_maps/{uploaded_file.name}', result, prediction[0][predicted_class_idx])
