@@ -1,7 +1,10 @@
 # Brain Tumor Classification with Neural Network
 
-[Demo](https://youtube.com/shorts/WXu8Sfr6oDg)
-[Link](https://braintumorclassify.streamlit.app/)
+<img src="notebook/images/main-1.png" width="500">
+<img src="notebook/images/main-2.png" width="500">
+<img src="notebook/images/main-3.png" width="500">
+
+<i>
 
 ## Part 1
 
