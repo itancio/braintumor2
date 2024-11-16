@@ -4,8 +4,6 @@
 <img src="https://github.com/itancio/braintumor2/blob/4796133b9797fac8d6234af22730595fedbf109d/public/%20images/main-2.png" width="500">
 <img src="https://github.com/itancio/braintumor2/blob/4796133b9797fac8d6234af22730595fedbf109d/public/%20images/main-3.png" width="500">
 
-public/ images/main-1.png
-
 ## Part 1
 
 - Downloading the dataset
